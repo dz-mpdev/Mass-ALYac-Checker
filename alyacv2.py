@@ -3,6 +3,7 @@ import datetime
 import platform
 import socket
 import colorama
+import msvcrt
 from colorama import Fore
 
 class AlyacChecker:
