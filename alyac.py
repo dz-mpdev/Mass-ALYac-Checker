@@ -30,43 +30,56 @@ hmi_list = "hmi.txt"
 current_time = datetime.datetime.now()
 
 with open(hmi_list, "r") as file:
-    ip_list = file.read().strip().split('\n')
+    lines = file.read().strip().split('\n')
+
+# Group IPs by room
+rooms = {}
+current_room = None
+for line in lines:
+    line = line.strip()
+    if line:
+        if line.islower():
+            current_room = line.capitalize()
+            rooms[current_room] = []
+        else:
+            rooms[current_room].append(line)
 
 # Get the hostname
 hostname = socket.gethostname()
-counter = 0
 separator = "◇─" * 22
-
-for ip in ip_list:
-    counter += 1
-    folder_path = get_folder_path(ip)
-    server_scan_folder_name = "server_scan"
-    directory_scan_path = get_directory_scan_path(ip)
-    
-    try:
-        if not os.path.exists(folder_path):
-            print("Folder path not found for IP:", ip)
-            continue
-
-        modified_date_scan = get_latest_modified_date(folder_path, server_scan_folder_name)
-        if modified_date_scan:
-            print(separator)
-            print(f"{counter}. Hostname: {hostname}")
-            print("   IP Address          :", ip)
-            print("   ALYac Latest Scan   :", modified_date_scan.strftime("%Y-%m-%d %H:%M:%S"))
-        else:
-            print("Server_scan folder not detected for IP:", ip)
-
-        if os.path.exists(directory_scan_path):
-            timestamp = os.path.getmtime(directory_scan_path)
-            latest_update_date = datetime.datetime.fromtimestamp(timestamp)
-            print("   ALYac Latest Update :", latest_update_date.strftime("%Y-%m-%d %H:%M:%S"))
-        else:
-            print("   ALYac Latest Update not detected for IP:", ip)
+print('IP Address       |  HMI Location        | Latest Update     | Latest Scan  ')
+for room, ip_list in rooms.items():
+    print(f"\n{room}:")
+    counter = 0  # Reset the counter for each room
+    for ip in ip_list:
+        counter += 1
+        folder_path = get_folder_path(ip)
+        server_scan_folder_name = "server_scan"
+        directory_scan_path = get_directory_scan_path(ip)
         
-    except Exception as e:
-        print("An error occurred for IP:", ip)
-        print("Error message :", str(e))
+        try:
+            if not os.path.exists(folder_path):
+                print("HMI Offline:", ip)
+                continue
 
-print(separator)
+            modified_date_scan = get_latest_modified_date(folder_path, server_scan_folder_name)
+            if modified_date_scan:
+                print(f"{counter}  IP Address          :", ip, "-",hostname)
+                print("   ALYac Latest Scan   :", modified_date_scan.strftime("%Y-%m-%d %H:%M:%S"))
+            else:
+                print("Server_scan folder not detected for IP:", ip)
+
+            if os.path.exists(directory_scan_path):
+                timestamp = os.path.getmtime(directory_scan_path)
+                latest_update_date = datetime.datetime.fromtimestamp(timestamp)
+                print("   ALYac Latest Update :", latest_update_date.strftime("%Y-%m-%d %H:%M:%S"))
+            else:
+                print("   ALYac Latest Update not detected for IP:", ip)
+            
+        except Exception as e:
+            print("An error occurred for IP:", ip)
+            print("Error message :", str(e))
+
+    print(separator)
+
 print("Result Checking        :", current_time.strftime("%Y-%m-%d %H:%M:%S"))
