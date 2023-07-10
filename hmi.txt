@@ -7,7 +7,6 @@ computer room
 172.21.1.4|hmi-6
 172.21.1.4|hmi-7
 
-
 testing room
 172.21.1.6|hmi-7
 172.21.1.7|hmi-8
